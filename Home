@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blue Platypus | Fractional Talent Matching</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy:       #1a2e4a;
+      --navy-dark:  #0f1e31;
+      --teal:       #00b4d8;
+      --teal-light: #90e0ef;
+      --teal-dark:  #0096b5;
+      --white:      #ffffff;
+      --off-white:  #f5f8fb;
+      --gray-100:   #edf1f7;
+      --gray-300:   #c3cdd9;
+      --gray-500:   #6b7a92;
+      --gray-700:   #3d4f6a;
+      --text:       #1a2540;
+      --radius:     10px;
+      --shadow:     0 4px 24px rgba(27,42,74,.10);
+      --shadow-lg:  0 8px 40px rgba(27,42,74,.16);
+    }
+    body { font-family:'Segoe UI',system-ui,-apple-system,sans-serif; color:var(--text); background:var(--white); line-height:1.65; }
+
+    /* NAV */
+    nav {
+      position:sticky; top:0; z-index:100;
+      background:var(--navy-dark);
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 2rem; height:68px;
+      box-shadow:0 2px 16px rgba(0,0,0,.28);
+    }
+    .nav-brand {
+      display:flex; align-items:center; gap:12px;
+      text-decoration:none; color:var(--white);
+      font-size:1.15rem; font-weight:700; letter-spacing:.02em;
+    }
+    .nav-links { display:flex; align-items:center; gap:1.5rem; }
+    .nav-links a { color:var(--teal-light); text-decoration:none; font-size:.9rem; font-weight:500; transition:color .2s; }
+    .nav-links a:hover { color:var(--white); }
+    .nav-btn { background:var(--teal); color:var(--navy-dark) !important; padding:.45rem 1.2rem; border-radius:6px; font-weight:700 !important; transition:background .2s !important; }
+    .nav-btn:hover { background:var(--teal-light) !important; }
+
+    /* PAGES */
+    .page { display:none; }
+    .page.active { display:block; }
+
+    /* HERO */
+    .hero {
+      background:linear-gradient(140deg, var(--navy-dark) 0%, var(--navy) 55%, #1b3a5c 100%);
+      color:var(--white); padding:5.5rem 2rem 5rem;
+      text-align:center; position:relative; overflow:hidden;
+    }
+    .hero-bg-svg {
+      position:absolute; right:-30px; top:50%; transform:translateY(-50%);
+      height:440px; width:auto; pointer-events:none; opacity:1;
+    }
+    .hero-tag {
+      display:inline-block; background:rgba(0,180,216,.18); color:var(--teal-light);
+      border:1px solid rgba(0,180,216,.35);
+      font-size:.8rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+      padding:.3rem 1rem; border-radius:20px; margin-bottom:1.4rem;
+    }
+    .hero h1 { font-size:clamp(2rem,5vw,3.4rem); font-weight:800; line-height:1.15; margin-bottom:1.2rem; }
+    .hero h1 span { color:var(--teal); }
+    .hero p { font-size:1.1rem; color:rgba(255,255,255,.78); max-width:600px; margin:0 auto 2.4rem; }
+    .hero-cta { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+
+    .btn-primary {
+      background:var(--teal); color:var(--navy-dark);
+      border:none; padding:.85rem 2rem; border-radius:8px;
+      font-size:1rem; font-weight:700; cursor:pointer;
+      text-decoration:none; display:inline-block;
+      box-shadow:0 4px 16px rgba(0,180,216,.35);
+      transition:background .2s, transform .15s, box-shadow .2s;
+    }
+    .btn-primary:hover { background:var(--teal-dark); transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,180,216,.45); }
+    .btn-outline {
+      background:transparent; color:var(--white);
+      border:2px solid rgba(255,255,255,.4); padding:.83rem 2rem;
+      border-radius:8px; font-size:1rem; font-weight:600;
+      cursor:pointer; text-decoration:none; display:inline-block;
+      transition:border-color .2s, background .2s;
+    }
+    .btn-outline:hover { border-color:var(--white); background:rgba(255,255,255,.08); }
+
+    /* TRUST BAR */
+    .trust-bar { background:var(--off-white); border-bottom:1px solid var(--gray-100); padding:1.2rem 2rem; text-align:center; }
+    .trust-bar p { font-size:.88rem; color:var(--gray-500); }
+    .trust-bar strong { color:var(--navy); }
+
+    /* SECTIONS */
+    section { padding:5rem 2rem; }
+    .section-inner { max-width:1080px; margin:0 auto; }
+    .section-label { color:var(--teal-dark); font-size:.8rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; margin-bottom:.5rem; }
+    .section-title { font-size:clamp(1.6rem,3vw,2.3rem); font-weight:800; color:var(--navy); margin-bottom:1rem; line-height:1.2; }
+    .section-sub { color:var(--gray-500); font-size:1rem; max-width:560px; }
+    .center { text-align:center; }
+    .center .section-sub { margin:0 auto; }
+
+    /* HOW WE WORK section */
+    .how { background:var(--off-white); }
+    .steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:1.6rem; margin-top:3rem; }
+    .step {
+      background:var(--white); border-radius:var(--radius);
+      padding:2.2rem 1.8rem; box-shadow:var(--shadow);
+      border:1px solid var(--gray-100); position:relative;
+      transition:box-shadow .2s, transform .2s;
+    }
+    .step:hover { box-shadow:var(--shadow-lg); transform:translateY(-4px); }
+    .step-num { position:absolute; top:1.4rem; right:1.4rem; font-size:3rem; font-weight:900; color:var(--gray-100); line-height:1; user-select:none; }
+    .step-icon {
+      width:58px; height:58px; border-radius:14px;
+      background:linear-gradient(135deg, var(--teal) 0%, #006fa3 100%);
+      display:flex; align-items:center; justify-content:center;
+      margin-bottom:1.2rem;
+      box-shadow:0 4px 12px rgba(0,180,216,.3);
+    }
+    .step h3 { font-size:1.1rem; font-weight:800; color:var(--navy); margin-bottom:.6rem; }
+    .step p { font-size:.93rem; color:var(--gray-500); line-height:1.65; }
+
+    /* ABOUT */
+    .about-grid { display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:center; }
+    @media (max-width:720px) { .about-grid { grid-template-columns:1fr; gap:2.5rem; } }
+    .about-text p { color:var(--gray-700); font-size:.97rem; margin-bottom:1rem; }
+    .about-text .pillars { display:flex; flex-direction:column; gap:.65rem; margin-top:1.4rem; }
+    .pillar { display:flex; align-items:flex-start; gap:.7rem; font-size:.93rem; color:var(--navy); line-height:1.5; }
+    .pillar-dot { width:8px; height:8px; border-radius:50%; background:var(--teal); flex-shrink:0; margin-top:6px; }
+
+    /* PRICING */
+    .pricing { background:var(--navy); }
+    .pricing .section-title { color:var(--white); }
+    .pricing .section-label { color:var(--teal-light); }
+    .pricing .section-sub { color:rgba(255,255,255,.65); margin:0 auto; }
+    .pricing-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1.5rem; margin-top:2.8rem; }
+    .price-card { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:var(--radius); padding:2rem 1.8rem; }
+    .price-card.featured { background:rgba(0,180,216,.12); border-color:rgba(0,180,216,.4); }
+    .price-icon { width:48px; height:48px; border-radius:12px; background:rgba(0,180,216,.18); display:flex; align-items:center; justify-content:center; margin-bottom:1.2rem; }
+    .price-badge { display:inline-block; background:var(--teal); color:var(--navy-dark); font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; padding:.25rem .7rem; border-radius:4px; margin-bottom:.8rem; }
+    .price-card h3 { font-size:1.05rem; font-weight:700; color:var(--white); margin-bottom:.5rem; }
+    .price-amount { font-size:2.4rem; font-weight:900; color:var(--teal); line-height:1; margin-bottom:.3rem; }
+    .price-sub { font-size:.85rem; color:rgba(255,255,255,.5); margin-bottom:1rem; }
+    .price-card p { font-size:.9rem; color:rgba(255,255,255,.7); line-height:1.65; }
+    .pricing-note { margin-top:2rem; text-align:center; font-size:.88rem; color:rgba(255,255,255,.45); }
+
+    /* ECOSYSTEM */
+    .ecosystem { background:var(--off-white); text-align:center; padding:3rem 2rem; }
+    .ecosystem p { color:var(--gray-500); font-size:.95rem; margin-bottom:.8rem; }
+    .eco-badges { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; margin-top:1rem; }
+    .eco-badge { background:var(--white); border:1.5px solid var(--gray-300); border-radius:8px; padding:.5rem 1.2rem; font-size:.85rem; font-weight:600; color:var(--navy); }
+
+    /* CTA BANNER */
+    .cta-banner { background:linear-gradient(135deg, var(--teal-dark) 0%, var(--teal) 100%); text-align:center; padding:4.5rem 2rem; }
+    .cta-banner h2 { font-size:clamp(1.6rem,3vw,2.2rem); font-weight:800; color:var(--navy-dark); margin-bottom:.8rem; }
+    .cta-banner p { color:rgba(15,30,49,.7); font-size:1.05rem; margin-bottom:2rem; max-width:520px; margin-left:auto; margin-right:auto; }
+    .btn-dark { background:var(--navy); color:var(--white); border:none; padding:.9rem 2.2rem; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; text-decoration:none; display:inline-block; transition:background .2s, transform .15s; }
+    .btn-dark:hover { background:var(--navy-dark); transform:translateY(-2px); }
+
+    /* FOOTER */
+    footer { background:var(--navy-dark); color:rgba(255,255,255,.5); padding:3rem 2rem 2rem; }
+    .footer-grid { max-width:1080px; margin:0 auto; display:grid; grid-template-columns:2fr 1fr 1fr; gap:2rem; margin-bottom:2.5rem; }
+    @media (max-width:640px) { .footer-grid { grid-template-columns:1fr; } }
+    .footer-brand { display:flex; align-items:center; gap:12px; margin-bottom:.8rem; }
+    .footer-brand-name { color:var(--white); font-weight:700; font-size:1rem; }
+    .footer-desc { font-size:.85rem; line-height:1.65; max-width:260px; }
+    .footer-col h4 { color:var(--white); font-size:.9rem; font-weight:700; margin-bottom:.8rem; }
+    .footer-col a { display:block; color:rgba(255,255,255,.5); text-decoration:none; font-size:.85rem; margin-bottom:.4rem; transition:color .2s; }
+    .footer-col a:hover { color:var(--teal-light); }
+    .footer-bottom { max-width:1080px; margin:0 auto; border-top:1px solid rgba(255,255,255,.08); padding-top:1.4rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem; font-size:.8rem; }
+
+    /* REGISTER */
+    .register-page { background:var(--off-white); min-height:calc(100vh - 68px); display:flex; align-items:center; justify-content:center; padding:3rem 1rem; }
+    .register-wrap { width:100%; max-width:520px; }
+    .register-card { background:var(--white); border-radius:14px; padding:2.8rem 2.4rem; box-shadow:var(--shadow-lg); border:1px solid var(--gray-100); }
+    .register-card h2 { font-size:1.7rem; font-weight:800; color:var(--navy); margin-bottom:.3rem; }
+    .register-card .sub { color:var(--gray-500); font-size:.92rem; margin-bottom:2rem; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    @media (max-width:480px) { .form-row { grid-template-columns:1fr; } }
+    .field { display:flex; flex-direction:column; gap:.4rem; margin-bottom:1rem; }
+    .field label { font-size:.85rem; font-weight:600; color:var(--gray-700); }
+    .field input, .field select { border:1.5px solid var(--gray-300); border-radius:7px; padding:.65rem .85rem; font-size:.95rem; color:var(--text); outline:none; font-family:inherit; background:var(--white); transition:border-color .2s, box-shadow .2s; }
+    .field input:focus, .field select:focus { border-color:var(--teal); box-shadow:0 0 0 3px rgba(0,180,216,.15); }
+    .role-select { appearance:none; cursor:pointer; }
+    .checkbox-row { display:flex; align-items:flex-start; gap:.6rem; margin-bottom:1.4rem; font-size:.85rem; color:var(--gray-700); }
+    .checkbox-row input[type="checkbox"] { margin-top:3px; accent-color:var(--teal); flex-shrink:0; }
+    .checkbox-row a { color:var(--teal-dark); }
+    .btn-submit { width:100%; background:var(--teal); color:var(--navy-dark); border:none; padding:.9rem; border-radius:8px; font-size:1rem; font-weight:700; cursor:pointer; font-family:inherit; transition:background .2s, transform .15s; }
+    .btn-submit:hover { background:var(--teal-dark); transform:translateY(-1px); }
+    .register-back { text-align:center; margin-top:1.2rem; font-size:.88rem; color:var(--gray-500); }
+    .register-back a { color:var(--teal-dark); text-decoration:none; font-weight:600; }
+    .or-divider { text-align:center; color:var(--gray-300); font-size:.8rem; margin:1.4rem 0; position:relative; }
+    .or-divider::before, .or-divider::after { content:''; position:absolute; top:50%; width:calc(50% - 32px); height:1px; background:var(--gray-100); }
+    .or-divider::before { left:0; } .or-divider::after { right:0; }
+    .btn-assessment-link { display:block; width:100%; text-align:center; background:var(--off-white); color:var(--navy); border:1.5px solid var(--gray-300); padding:.75rem; border-radius:8px; font-size:.92rem; font-weight:600; text-decoration:none; transition:border-color .2s, background .2s; }
+    .btn-assessment-link:hover { border-color:var(--teal); background:rgba(0,180,216,.05); }
+    .success-box { text-align:center; padding:1.5rem 0; }
+    .success-icon { width:68px; height:68px; border-radius:50%; background:linear-gradient(135deg, var(--teal) 0%, #0077a8 100%); display:flex; align-items:center; justify-content:center; margin:0 auto 1.2rem; }
+    .success-box h3 { font-size:1.4rem; font-weight:800; color:var(--navy); margin-bottom:.6rem; }
+    .success-box p { color:var(--gray-500); font-size:.95rem; margin-bottom:1.4rem; line-height:1.65; }
+
+    /* FAQ */
+    .faq-page { background:var(--off-white); min-height:calc(100vh - 68px); padding:4rem 2rem 5rem; }
+    .faq-inner { max-width:760px; margin:0 auto; }
+    .faq-page h2 { font-size:clamp(1.8rem,3.5vw,2.6rem); font-weight:800; color:var(--navy); margin-bottom:.4rem; }
+    .faq-sub { color:var(--gray-500); font-size:1rem; margin-bottom:2.5rem; }
+    .faq-section-head { font-size:.8rem; font-weight:700; color:var(--teal-dark); text-transform:uppercase; letter-spacing:.1em; margin:2rem 0 .8rem; }
+    .faq-list { display:flex; flex-direction:column; gap:.6rem; }
+    .faq-item { background:var(--white); border-radius:var(--radius); border:1px solid var(--gray-100); overflow:hidden; box-shadow:0 2px 8px rgba(27,42,74,.06); }
+    .faq-q { width:100%; text-align:left; padding:1.1rem 1.4rem; display:flex; align-items:center; justify-content:space-between; background:none; border:none; cursor:pointer; font-size:.95rem; font-weight:700; color:var(--navy); font-family:inherit; transition:background .15s; }
+    .faq-q:hover { background:var(--off-white); }
+    .faq-q.open { color:var(--teal-dark); }
+    .faq-chevron { width:20px; height:20px; flex-shrink:0; margin-left:1rem; color:var(--gray-500); transition:transform .25s; }
+    .faq-q.open .faq-chevron { transform:rotate(180deg); color:var(--teal-dark); }
+    .faq-a { max-height:0; overflow:hidden; padding:0 1.4rem; font-size:.93rem; color:var(--gray-700); line-height:1.72; transition:max-height .3s ease, padding .2s; }
+    .faq-a.open { max-height:400px; padding:0 1.4rem 1.3rem; }
+
+    /* HOW WE WORK PAGE */
+    .hww-page { background:var(--off-white); min-height:calc(100vh - 68px); padding:4rem 2rem 5rem; }
+    .hww-inner { max-width:800px; margin:0 auto; }
+
+    @media (max-width:600px) {
+      nav { padding:0 1rem; }
+      .nav-links { gap:.8rem; }
+      .footer-bottom { flex-direction:column; text-align:center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── SHARED SVG DEFS ─── -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Platypus mark: teal circle + white silhouette -->
+    <symbol id="icon-platypus" viewBox="0 0 48 48">
+      <circle cx="24" cy="24" r="24" fill="#00b4d8"/>
+      <!-- body -->
+      <ellipse cx="27" cy="28" rx="12" ry="8.5" fill="#0f1e31"/>
+      <!-- head -->
+      <circle cx="15" cy="23" r="7.5" fill="#0f1e31"/>
+      <!-- bill -->
+      <path d="M9 25C6 23 4.5 27 7 29C9.5 31 15.5 27.5 15.5 26C15.5 24 12 24 9 25Z" fill="#0f1e31"/>
+      <!-- tail -->
+      <path d="M37 29C42 25 44 32 41 34C38.5 36 37 31.5 37 29Z" fill="#0f1e31"/>
+      <!-- feet -->
+      <ellipse cx="21" cy="36" rx="4" ry="2" fill="#0f1e31"/>
+      <ellipse cx="30" cy="36.5" rx="4" ry="2" fill="#0f1e31"/>
+      <!-- eye white -->
+      <circle cx="12.5" cy="20.5" r="2.8" fill="white"/>
+      <!-- pupil -->
+      <circle cx="12" cy="20" r="1.1" fill="#0f1e31"/>
+    </symbol>
+
+    <!-- No Resumes icon: document with bold X -->
+    <symbol id="icon-noresume" viewBox="0 0 28 28">
+      <rect x="5" y="3" width="16" height="21" rx="2.5" fill="none" stroke="white" stroke-width="2"/>
+      <path d="M11 3v0a3 3 0 003 3 3 3 0 003-3" fill="none" stroke="white" stroke-width="2"/>
+      <line x1="9" y1="15" x2="19" y2="15" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+      <line x1="9" y1="19" x2="15" y2="19" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+      <!-- bold X -->
+      <line x1="9" y1="10" x2="19" y2="20" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="19" y1="10" x2="9" y2="20" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+    </symbol>
+
+    <!-- Assessment icon: clipboard with score bars -->
+    <symbol id="icon-assessment" viewBox="0 0 28 28">
+      <rect x="5" y="5" width="18" height="20" rx="2.5" fill="none" stroke="white" stroke-width="2"/>
+      <path d="M10 5v1a4 4 0 004 3 4 4 0 004-3V5" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <!-- bars -->
+      <rect x="8"  y="16" width="3" height="5" rx="1" fill="white"/>
+      <rect x="12.5" y="13" width="3" height="8" rx="1" fill="white"/>
+      <rect x="17" y="18" width="3" height="3" rx="1" fill="white"/>
+      <!-- score line -->
+      <line x1="8" y1="12" x2="20" y2="12" stroke="rgba(255,255,255,0.35)" stroke-width="1" stroke-dasharray="2 2"/>
+    </symbol>
+
+    <!-- Matching icon: two people + center check -->
+    <symbol id="icon-match" viewBox="0 0 28 28">
+      <!-- person left -->
+      <circle cx="5.5" cy="9" r="3" fill="none" stroke="white" stroke-width="2"/>
+      <path d="M1 20c0-4 2-6 4.5-6S10 16 10 20" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <!-- person right -->
+      <circle cx="22.5" cy="9" r="3" fill="none" stroke="white" stroke-width="2"/>
+      <path d="M18 20c0-4 2-6 4.5-6S27 16 27 20" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      <!-- center check circle -->
+      <circle cx="14" cy="10" r="4.5" fill="white" opacity="0.15" stroke="white" stroke-width="1.5"/>
+      <polyline points="11.5 10 13 11.8 16.5 7.5" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <a class="nav-brand" href="#" onclick="showPage('home'); return false;">
+    <svg width="44" height="44" style="flex-shrink:0"><use href="#icon-platypus"/></svg>
+    Blue Platypus
+  </a>
+  <div class="nav-links">
+    <a href="#" onclick="showPage('home'); return false;">Home</a>
+    <a href="#" onclick="showPage('how'); return false;">How We Work</a>
+    <a href="#" onclick="showPage('faq'); return false;">FAQ</a>
+    <a href="#" class="nav-btn" onclick="showPage('register'); return false;">Take the Assessment</a>
+  </div>
+</nav>
+
+<!-- ════════════════════ HOME ════════════════════ -->
+<div id="page-home" class="page active">
+
+  <!-- HERO -->
+  <div class="hero">
+    <!-- Decorative background platypus watermark -->
+    <svg class="hero-bg-svg" viewBox="0 0 340 280" fill="none" aria-hidden="true">
+      <!-- large platypus silhouette, white ultra-transparent -->
+      <ellipse cx="200" cy="170" rx="105" ry="80" fill="rgba(255,255,255,0.04)"/>
+      <circle  cx="95"  cy="120" r="72"          fill="rgba(255,255,255,0.04)"/>
+      <path d="M28 135C5 122 -8 155 10 168C28 181 90 150 90 140C90 128 56 128 28 135Z" fill="rgba(255,255,255,0.04)"/>
+      <path d="M290 182C325 160 338 200 320 212C302 222 290 190 290 182Z"              fill="rgba(255,255,255,0.04)"/>
+      <!-- eye accent -->
+      <circle cx="73" cy="102" r="15" fill="rgba(0,180,216,0.08)"/>
+      <!-- orbit rings -->
+      <circle cx="170" cy="140" r="130" fill="none" stroke="rgba(0,180,216,0.06)" stroke-width="1"/>
+      <circle cx="170" cy="140" r="90"  fill="none" stroke="rgba(0,180,216,0.06)" stroke-width="1"/>
+    </svg>
+
+    <div class="hero-tag">Anonymous · Merit-Based · Fractional Executive Matching</div>
+    <h1>The only fractional matching platform that leads with <span>merit,</span> not résumé theater.</h1>
+    <p>We match companies and fractional executives on capability — not credentials, title inflation, or logo soup. Identity stays anonymous until both sides confirm fit.</p>
+    <div class="hero-cta">
+      <a href="#" class="btn-primary" onclick="showPage('register'); return false;">Take the Assessment</a>
+      <a href="#" class="btn-outline"  onclick="showPage('how'); return false;">How It Works</a>
+    </div>
+  </div>
+
+  <!-- TRUST BAR -->
+  <div class="trust-bar">
+    <p>Anonymous matching · Merit-based fit · Part of the <strong>Strategy 22 Ecosystem</strong> · Featured on the <strong>Own the Detour Platform</strong></p>
+  </div>
+
+  <!-- HOW WE WORK PREVIEW -->
+  <section class="how">
+    <div class="section-inner">
+      <div class="center" style="margin-bottom:0">
+        <div class="section-label">Our Process</div>
+        <h2 class="section-title">Merit in. Résumé theater out.</h2>
+        <p class="section-sub">Three steps that replace title inflation and logo soup with demonstrated, anonymous, capability-based fit — for both sides of the match.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-num">01</span>
+          <div class="step-icon">
+            <svg width="32" height="32"><use href="#icon-noresume"/></svg>
+          </div>
+          <h3>Build Your Capability Stack</h3>
+          <p>Executives build a structured profile of what they've actually done, the outcomes they've driven, and where they work best. No résumé. No title inflation. Work speaks.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">02</span>
+          <div class="step-icon">
+            <svg width="32" height="32"><use href="#icon-assessment"/></svg>
+          </div>
+          <h3>Get Your Fractional Fit Score</h3>
+          <p>Companies share their specific challenge and context. We match on demonstrated capability, not credentials. The Fractional Fit Score surfaces who's actually solved your problem before.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">03</span>
+          <div class="step-icon">
+            <svg width="32" height="32"><use href="#icon-match"/></svg>
+          </div>
+          <h3>Anonymous Until Both Sides Are Ready</h3>
+          <p>Identity is only revealed when both sides confirm fit. No bias, no credential theater. When you move forward, it's because the match is real — not because someone had a good logo on their résumé.</p>
+        </div>
+      </div>
+      <div style="text-align:center; margin-top:2.5rem">
+        <a href="#" class="btn-primary" onclick="showPage('how'); return false;">Learn More About Our Process →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section>
+    <div class="section-inner">
+      <div class="about-grid">
+
+        <!-- SVG Platform Illustration -->
+        <div>
+          <svg viewBox="0 0 480 330" fill="none" xmlns="http://www.w3.org/2000/svg"
+               style="width:100%;height:auto;display:block;border-radius:16px;box-shadow:0 8px 40px rgba(27,42,74,.18)">
+            <!-- BG -->
+            <rect width="480" height="330" rx="16" fill="#0f1e31"/>
+            <!-- dot grid -->
+            <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+              <circle cx="11" cy="11" r=".9" fill="rgba(255,255,255,0.055)"/>
+            </pattern>
+            <rect width="480" height="330" fill="url(#dots)"/>
+
+            <!-- dashed lines: talent → center -->
+            <path d="M102 80 Q220 120 228 165"  stroke="#00b4d8" stroke-width="1.4" stroke-dasharray="5 4" opacity=".35"/>
+            <path d="M102 165 Q195 165 228 165" stroke="#00b4d8" stroke-width="1.4" stroke-dasharray="5 4" opacity=".35"/>
+            <path d="M102 250 Q220 210 228 165" stroke="#00b4d8" stroke-width="1.4" stroke-dasharray="5 4" opacity=".35"/>
+
+            <!-- dashed lines: center → companies -->
+            <path d="M252 165 Q310 120 378 80"  stroke="#00b4d8" stroke-width="1.4" stroke-dasharray="5 4" opacity=".35"/>
+            <path d="M252 165 Q310 165 378 165" stroke="#00b4d8" stroke-width="1.4" stroke-dasharray="5 4" opacity=".35"/>
+            <path d="M252 165 Q310 210 378 250" stroke="#00b4d8" stroke-width="1.4" stroke-dasharray="5 4" opacity=".35"/>
+
+            <!-- Talent nodes -->
+            <circle cx="102" cy="80"  r="30" fill="#1a2e4a" stroke="#00b4d8" stroke-width="1.5"/>
+            <circle cx="102" cy="165" r="30" fill="#1a2e4a" stroke="#00b4d8" stroke-width="1.5"/>
+            <circle cx="102" cy="250" r="30" fill="#1a2e4a" stroke="#00b4d8" stroke-width="1.5"/>
+            <!-- person icons in talent nodes -->
+            <g transform="translate(102,80)">
+              <circle cy="-7" r="6.5" fill="#00b4d8" opacity=".85"/>
+              <path d="M-11 14c0-6 4.5-10 11-10s11 4 11 10" fill="none" stroke="#00b4d8" stroke-width="1.8" stroke-linecap="round" opacity=".85"/>
+            </g>
+            <g transform="translate(102,165)">
+              <circle cy="-7" r="6.5" fill="#00b4d8" opacity=".85"/>
+              <path d="M-11 14c0-6 4.5-10 11-10s11 4 11 10" fill="none" stroke="#00b4d8" stroke-width="1.8" stroke-linecap="round" opacity=".85"/>
+            </g>
+            <g transform="translate(102,250)">
+              <circle cy="-7" r="6.5" fill="#00b4d8" opacity=".85"/>
+              <path d="M-11 14c0-6 4.5-10 11-10s11 4 11 10" fill="none" stroke="#00b4d8" stroke-width="1.8" stroke-linecap="round" opacity=".85"/>
+            </g>
+
+            <!-- Center platypus medallion -->
+            <circle cx="240" cy="165" r="54" fill="#00b4d8"/>
+            <circle cx="240" cy="165" r="48" fill="#00b4d8"/>
+            <!-- platypus white silhouette, scaled -->
+            <ellipse cx="245" cy="174" rx="17" ry="12" fill="#0f1e31"/>
+            <circle  cx="228" cy="168" r="10.5" fill="#0f1e31"/>
+            <path d="M219 171C215 169 213 174 216 177C218.5 179 227 175 227 173C227 171 222 170 219 171Z" fill="#0f1e31"/>
+            <path d="M261 177C266 173 268 180 265 182C262.5 184 261 179 261 177Z" fill="#0f1e31"/>
+            <ellipse cx="236" cy="185" rx="4.5" ry="2" fill="#0f1e31"/>
+            <ellipse cx="249" cy="186" rx="4.5" ry="2" fill="#0f1e31"/>
+            <circle cx="225.5" cy="164.5" r="3.2" fill="white"/>
+            <circle cx="225"   cy="164"   r="1.3" fill="#0f1e31"/>
+
+            <!-- Company nodes (right) -->
+            <circle cx="378" cy="80"  r="30" fill="#1a2e4a" stroke="#00b4d8" stroke-width="1.5"/>
+            <circle cx="378" cy="165" r="30" fill="#1a2e4a" stroke="#00b4d8" stroke-width="1.5"/>
+            <circle cx="378" cy="250" r="30" fill="#1a2e4a" stroke="#00b4d8" stroke-width="1.5"/>
+            <!-- building icons in company nodes -->
+            <g transform="translate(378,80)">
+              <rect x="-11" y="-14" width="22" height="22" rx="1.5" fill="none" stroke="#00b4d8" stroke-width="1.8" opacity=".85"/>
+              <rect x="-7"  y="-9"  width="5"  height="5" rx=".5" fill="#00b4d8" opacity=".85"/>
+              <rect x="2"   y="-9"  width="5"  height="5" rx=".5" fill="#00b4d8" opacity=".85"/>
+              <rect x="-7"  y="-2"  width="5"  height="5" rx=".5" fill="#00b4d8" opacity=".85"/>
+              <rect x="2"   y="-2"  width="5"  height="5" rx=".5" fill="#00b4d8" opacity=".85"/>
+              <rect x="-3"  y="5"   width="6"  height="3" rx=".5" fill="#00b4d8" opacity=".85"/>
+            </g>
+            <g transform="translate(378,165)">
+              <rect x="-11" y="-14" width="22" height="22" rx="1.5" fill="none" stroke="#00b4d8" stroke-width="1.8" opacity=".85"/>
+              <rect x="-7"  y="-9"  width="5"  height="5" rx=".5" fill="#00b4d8" opacity=".85"/>
+              <rect x="2"   y="-9"  width="5"  height="5" rx=".5" fill="#00b4d8" opacity=".85"/>
+              <rect x="-7"  y="-2"  width="5"  height="5" rx=".5" fill="#00b4d8" opacity=".85"/>
+              <rect x="2"   y="-2"  width="5"  height="5" rx=".5" fill="#00b4d8" opacity=".85"/>
+              <rect x="-3"  y="5"   width="6"  height="3" rx=".5" fill="#00b4d8" opacity=".85"/>
+            </g>
+            <g transform="translate(378,250)">
+              <rect x="-11" y="-14" width="22" height="22" rx="1.5" fill="none" stroke="#00b4d8" stroke-width="1.8" opacity=".85"/>
+              <rect x="-7"  y="-9"  width="5"  height="5" rx=".5" fill="#00b4d8" opacity=".85"/>
+              <rect x="2"   y="-9"  width="5"  height="5" rx=".5" fill="#00b4d8" opacity=".85"/>
+              <rect x="-7"  y="-2"  width="5"  height="5" rx=".5" fill="#00b4d8" opacity=".85"/>
+              <rect x="2"   y="-2"  width="5"  height="5" rx=".5" fill="#00b4d8" opacity=".85"/>
+              <rect x="-3"  y="5"   width="6"  height="3" rx=".5" fill="#00b4d8" opacity=".85"/>
+            </g>
+
+            <!-- Labels -->
+            <text x="102" y="300" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="9.5" font-family="'Segoe UI',sans-serif" font-weight="700" letter-spacing="2">TALENT</text>
+            <text x="240" y="230" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="8.5" font-family="'Segoe UI',sans-serif" font-weight="700" letter-spacing="1">BLUE PLATYPUS</text>
+            <text x="378" y="300" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="9.5" font-family="'Segoe UI',sans-serif" font-weight="700" letter-spacing="2">COMPANIES</text>
+          </svg>
+        </div>
+
+        <div class="about-text">
+          <div class="section-label">Who We Are</div>
+          <h2 class="section-title">Every other platform matches on credentials. We match on capability.</h2>
+          <p><strong>For companies:</strong> You're not paying for someone's past. You're paying for traction on a specific problem. We find you the executive who's done the exact thing you need done — CMO, CFO, COO, CRO — without the full-time overhead.</p>
+          <p><strong>For fractional executives:</strong> You don't have to perform your history anymore. Your work speaks. We surface you to the companies that actually need what you actually do — not the ones impressed by where you used to work.</p>
+          <p>Blue Platypus is built for companies in the $10M–$200M ARR range and the experienced operators who serve them. If you have a real problem and a real budget — or if your work speaks for itself — we built this for you.</p>
+          <div class="pillars">
+            <div class="pillar"><span class="pillar-dot"></span> Fractional CMO, CFO, COO &amp; CRO matching</div>
+            <div class="pillar"><span class="pillar-dot"></span> Anonymous until both sides confirm fit</div>
+            <div class="pillar"><span class="pillar-dot"></span> Fractional Fit Score replaces credential theater</div>
+            <div class="pillar"><span class="pillar-dot"></span> We stay involved — no handoff-and-goodbye</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="pricing">
+    <div class="section-inner center">
+      <div class="section-label">Pricing</div>
+      <h2 class="section-title">Terms &amp; Costs</h2>
+      <p class="section-sub">We don't believe in one-size-fits-all engagement models any more than we believe in one-size-fits-all hires. Pricing is structured for both sides of the market.</p>
+      <div class="pricing-cards">
+
+        <div class="price-card featured">
+          <div class="price-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00b4d8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2"/>
+              <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+              <line x1="12" y1="12" x2="12" y2="16"/>
+              <line x1="10" y1="14" x2="14" y2="14"/>
+            </svg>
+          </div>
+          <div class="price-badge">For Companies</div>
+          <h3>You Pay for Traction, Not History</h3>
+          <div class="price-amount" style="font-size:1.5rem;line-height:1.2">Talk to us</div>
+          <div class="price-sub">Structured for your problem and scope</div>
+          <p>If you have a real problem and a real budget, we find you the executive who's solved it before. Reach out to discuss what's right for your situation.</p>
+        </div>
+
+        <div class="price-card">
+          <div class="price-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00b4d8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+          </div>
+          <div class="price-badge">For Executives</div>
+          <h3>Your Work Speaks. We Surface It.</h3>
+          <div class="price-amount" style="font-size:1.5rem;line-height:1.2">Talk to us</div>
+          <div class="price-sub">Structured for fractional operators</div>
+          <p>Tired of competing on LinkedIn clout? Build your Capability Stack and get matched to companies that actually need what you actually do.</p>
+        </div>
+
+        <div class="price-card">
+          <div class="price-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00b4d8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <polyline points="9 12 11 14 15 10"/>
+            </svg>
+          </div>
+          <div class="price-badge">Our Promise</div>
+          <h3>We Stay in the Room</h3>
+          <div class="price-amount" style="font-size:1.5rem;line-height:1.2">Always</div>
+          <div class="price-sub">No handoff-and-goodbye model</div>
+          <p>If something isn't working — scope creep, misaligned expectations, a change in direction — we're in the room to course-correct or rematch. We don't disappear at placement.</p>
+        </div>
+
+      </div>
+      <p class="pricing-note">Ready to talk? Email <a href="mailto:evolve@blueplatypus.online" style="color:var(--teal-light)">evolve@blueplatypus.online</a></p>
+    </div>
+  </section>
+
+  <!-- ECOSYSTEM -->
+  <div class="ecosystem">
+    <p>Blue Platypus is a proud member of:</p>
+    <div class="eco-badges">
+      <div class="eco-badge">Strategy 22 Ecosystem</div>
+      <div class="eco-badge">Own the Detour Platform</div>
+    </div>
+  </div>
+
+  <!-- CTA BANNER -->
+  <div class="cta-banner">
+    <h2>Your work speaks. Let it.</h2>
+    <p>Build your Capability Stack, get your Fractional Fit Score, and get matched to companies that need exactly what you do.</p>
+    <a href="#" class="btn-dark" onclick="showPage('register'); return false;">Take the Assessment →</a>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <svg width="40" height="40" style="flex-shrink:0"><use href="#icon-platypus"/></svg>
+          <span class="footer-brand-name">Blue Platypus</span>
+        </div>
+        <p class="footer-desc">Connecting fractional leaders with companies ready to transform the future of work. A member of the Strategy 22 ecosystem.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Navigate</h4>
+        <a href="#" onclick="showPage('home'); return false;">Home</a>
+        <a href="#" onclick="showPage('how'); return false;">How We Work</a>
+        <a href="#" onclick="showPage('faq'); return false;">FAQ</a>
+        <a href="#" onclick="showPage('register'); return false;">Take the Assessment</a>
+      </div>
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <a href="mailto:evolve@blueplatypus.online">evolve@blueplatypus.online</a>
+        <a href="#">215 Highland Ave</a>
+        <a href="#">Syracuse, NY 13203</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Blue Platypus. All rights reserved.</span>
+      <span>A member of the Strategy 22 Ecosystem</span>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ════════════════════ HOW WE WORK ════════════════════ -->
+<div id="page-how" class="page">
+  <div class="hww-page">
+    <div class="hww-inner">
+      <div class="section-label">Our Process</div>
+      <h2 class="section-title">How Blue Platypus Works</h2>
+      <p class="faq-sub">Three steps. No résumé theater. No bias. No credential inflation. Just the right match.</p>
+
+      <div style="display:flex; flex-direction:column; gap:2rem; margin-top:2rem">
+
+        <div style="background:var(--white); border-radius:var(--radius); padding:2.2rem; box-shadow:var(--shadow); border:1px solid var(--gray-100)">
+          <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem">
+            <div class="step-icon" style="flex-shrink:0">
+              <svg width="32" height="32"><use href="#icon-noresume"/></svg>
+            </div>
+            <h3 style="font-size:1.2rem; font-weight:800; color:var(--navy)">Step 1 — Build Your Capability Stack</h3>
+          </div>
+          <p style="color:var(--gray-700); font-size:.97rem; line-height:1.75">Executives build a structured profile — not a résumé — of what they've actually done, the outcomes they've driven, and where they work best. Companies share their specific challenge and context. No titles. No logos. No performing your history. This is the foundation that makes everything else work.</p>
+        </div>
+
+        <div style="background:var(--white); border-radius:var(--radius); padding:2.2rem; box-shadow:var(--shadow); border:1px solid var(--gray-100)">
+          <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem">
+            <div class="step-icon" style="flex-shrink:0">
+              <svg width="32" height="32"><use href="#icon-assessment"/></svg>
+            </div>
+            <h3 style="font-size:1.2rem; font-weight:800; color:var(--navy)">Step 2 — Get Your Fractional Fit Score</h3>
+          </div>
+          <p style="color:var(--gray-700); font-size:.97rem; line-height:1.75">We match on demonstrated capability, not credentials. The Fractional Fit Score evaluates the intersection of what a company needs and what an executive has actually delivered. Both sides see fit scores — not identities. This removes the bias and credential inflation that makes most fractional hiring expensive and slow.</p>
+        </div>
+
+        <div style="background:var(--white); border-radius:var(--radius); padding:2.2rem; box-shadow:var(--shadow); border:1px solid var(--gray-100)">
+          <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem">
+            <div class="step-icon" style="flex-shrink:0">
+              <svg width="32" height="32"><use href="#icon-match"/></svg>
+            </div>
+            <h3 style="font-size:1.2rem; font-weight:800; color:var(--navy)">Step 3 — Anonymous Until Both Sides Are Ready</h3>
+          </div>
+          <p style="color:var(--gray-700); font-size:.97rem; line-height:1.75">Identity is revealed only when both sides confirm fit. When you move forward, it's because the match is real. And we don't disappear at placement — if something isn't working (scope creep, misaligned expectations, a change in direction), we're in the room to course-correct or rematch.</p>
+        </div>
+
+      </div>
+
+      <div style="margin-top:2.5rem; text-align:center">
+        <a href="#" class="btn-primary" onclick="showPage('register'); return false;">Start Your Assessment →</a>
+        <p style="margin-top:1rem; color:var(--gray-500); font-size:.88rem">Questions? Email <a href="mailto:evolve@blueplatypus.online" style="color:var(--teal-dark)">evolve@blueplatypus.online</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ REGISTER ════════════════════ -->
+<div id="page-register" class="page">
+  <div class="register-page">
+    <div class="register-wrap">
+      <div class="register-card" id="register-form-wrap">
+        <h2>Start Your Assessment</h2>
+        <p class="sub">Tell us about yourself and we'll match you with the right opportunities — or the right talent.</p>
+        <form id="register-form" onsubmit="handleRegister(event)">
+          <div class="form-row">
+            <div class="field"><label for="r-first">First Name</label><input type="text" id="r-first" placeholder="Jane" required/></div>
+            <div class="field"><label for="r-last">Last Name</label><input type="text" id="r-last" placeholder="Smith" required/></div>
+          </div>
+          <div class="field"><label for="r-email">Email Address</label><input type="email" id="r-email" placeholder="jane@company.com" required/></div>
+          <div class="field">
+            <label for="r-role">I am a…</label>
+            <select id="r-role" class="role-select" required>
+              <option value="" disabled selected>Select your role</option>
+              <option value="talent">Fractional Professional / Advisor seeking placement</option>
+              <option value="company">Company looking to hire fractional talent</option>
+              <option value="ned">Non-Executive Director seeking opportunities</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="field"><label for="r-company">Company / Organization</label><input type="text" id="r-company" placeholder="Acme Corp"/></div>
+            <div class="field"><label for="r-title">Current Title</label><input type="text" id="r-title" placeholder="e.g. Fractional CMO"/></div>
+          </div>
+          <div class="field"><label for="r-expertise">Area of Expertise / Need</label><input type="text" id="r-expertise" placeholder="e.g. Go-to-Market Strategy, Sales Operations"/></div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="r-terms" required/>
+            <label for="r-terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>, and I understand the one-time $250 placement and matching fee.</label>
+          </div>
+          <button type="submit" class="btn-submit">Submit &amp; Begin Matching</button>
+        </form>
+        <div class="or-divider">or take the full assessment directly</div>
+        <a href="https://forms.gle/cK2jcDrn5QS32JUp7r" target="_blank" class="btn-assessment-link">Open the Blue Platypus Assessment Form →</a>
+        <div class="register-back" style="margin-top:1.2rem"><a href="#" onclick="showPage('home'); return false;">← Back to Home</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ FAQ ════════════════════ -->
+<div id="page-faq" class="page">
+  <div class="faq-page">
+    <div class="faq-inner">
+      <div class="section-label">Support</div>
+      <h2>Frequently Asked Questions</h2>
+      <p class="faq-sub">The honest answers — no fluff, no sales pitch.</p>
+
+      <div class="faq-list">
+
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">What is Blue Platypus?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="faq-a">Blue Platypus is an anonymous, merit-based fractional executive matching platform. We connect companies that need senior-level expertise on a fractional basis with executives who've demonstrated they can actually do the work — matched on capability, not credentials.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">Why are you different from other fractional platforms or recruiting firms?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="faq-a">Most platforms lead with résumés, titles, and employer logos. We lead with fit. Our Fractional Fit Score and Capability Stack evaluate what an executive can actually deliver — not where they used to work. Matching is anonymous until both sides confirm fit, which removes bias and credential inflation from the process.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">How does the anonymous matching process actually work?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="faq-a">Executives build a Capability Stack — a structured profile of what they've actually done, the outcomes they've driven, and where they work best. Companies share their specific challenge and context. We match on demonstrated fit. Identity is only revealed when both sides are ready to move forward.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">Who is Blue Platypus for on the company side?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="faq-a">Companies in the $10M–$200M ARR range that need senior fractional leadership — CMO, CFO, COO, CRO — but aren't ready for, or don't need, a full-time hire. If you have a real problem and a real budget, we can find you someone who's solved it before.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">Who is Blue Platypus for on the executive side?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="faq-a">Experienced operators who are doing fractional work — or want to — and are tired of competing on LinkedIn clout. If your work speaks for itself, we built this for you.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">I've tried fractional hires before and it didn't work. Why would this be different?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="faq-a">Usually fractional fails for one of three reasons: wrong scope, wrong fit, or wrong expectations on both sides. Our process is built to surface all three before anyone signs anything. The Fractional Fit Score exists specifically to prevent the expensive mismatch.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">How is this different from just posting on LinkedIn or using a staffing firm?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="faq-a">LinkedIn favors visibility, not capability. Staffing firms optimize for placement speed and margin. We optimize for match quality — which means we'll tell you when it's not the right fit instead of filling a seat to close a deal.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">What does it cost?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="faq-a">Pricing is structured for both sides of the market. Reach out to discuss what's right for your situation — we don't believe in one-size-fits-all engagement models any more than we believe in one-size-fits-all hires.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">How quickly can I expect a match?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="faq-a">We don't rush matches. A fast bad match costs everyone more than a slightly slower right one. That said, our active talent pool means most companies see qualified options within two weeks of onboarding.</div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">What if the match doesn't work out?<svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          <div class="faq-a">We stay involved. This isn't a handoff-and-goodbye model. If something isn't working — scope creep, misaligned expectations, a change in company direction — we're in the room to help course-correct or rematch.</div>
+        </div>
+
+      </div>
+
+      <div style="margin-top:2.5rem; background:var(--white); border-radius:var(--radius); border:1px solid var(--gray-100); box-shadow:var(--shadow); padding:1.8rem; text-align:center">
+        <p style="color:var(--gray-500); margin-bottom:1rem">Still have questions?</p>
+        <a href="mailto:evolve@blueplatypus.online" class="btn-primary">Email evolve@blueplatypus.online</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (name !== 'register') resetRegister();
+  }
+
+  const origRegisterHTML = document.getElementById('register-form-wrap').innerHTML;
+  function resetRegister() {
+    document.getElementById('register-form-wrap').innerHTML = origRegisterHTML;
+  }
+
+  function handleRegister(e) {
+    e.preventDefault();
+    const first = document.getElementById('r-first').value;
+    const role  = document.getElementById('r-role');
+    const roleLabel = role.options[role.selectedIndex].text;
+    document.getElementById('register-form-wrap').innerHTML = `
+      <div class="success-box">
+        <div class="success-icon">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h3>You're in, ${first}!</h3>
+        <p>Your intake as <strong>${roleLabel}</strong> has been submitted. A member of the Blue Platypus team will reach out within one business day.<br><br>In the meantime, complete the full assessment below.</p>
+        <a href="https://forms.gle/cK2jcDrn5QS32JUp7r" target="_blank" class="btn-primary" style="margin-bottom:.8rem;display:inline-block">Take the Full Assessment →</a><br>
+        <a href="#" style="color:var(--teal-dark);font-size:.9rem" onclick="showPage('home'); return false;">← Back to Home</a>
+      </div>`;
+  }
+
+  function toggleFaq(btn) {
+    const answer = btn.nextElementSibling;
+    const isOpen = answer.classList.contains('open');
+    document.querySelectorAll('.faq-a').forEach(a => a.classList.remove('open'));
+    document.querySelectorAll('.faq-q').forEach(q => q.classList.remove('open'));
+    if (!isOpen) { answer.classList.add('open'); btn.classList.add('open'); }
+  }
+</script>
+</body>
+</html>
